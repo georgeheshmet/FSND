@@ -1,0 +1,51 @@
+designing database:
+mysql workbench
+
+pg_ctl -D "C:\Program Files\PostgreSQL\12\data" start
+psql -U postgres
+createdb -U postgres newdatabase
+\l :list databases
+\dt :lists all tables
+\d tablename : shows table schemas
+\c databasename : connects you to diferent database
+createuser --interactive --pwprompt
+
+set PGUSER=postgres
+
+https://superuser.com/questions/758077/change-postgresql-database-user-from-windows-user-in-cmd
+FLAS CODE
+
+changes affects automatically
+set FLASK_APP = file name
+flask run
+set FLASK_DEBUG=true
+to change port number:
+set FLASK_RUN_PORT=8000
+flask run
+jsonify {}
+
+
+flask_sqlalchemy:
+https://flask-sqlalchemy.palletsprojects.com/en/2.x/
+
+setting relationships betwwen tables using :relationship api in sql alchemy
+
+sql alchey cheat sheet:
+https://github.com/crazyguitar/pysheeet/blob/master/docs/notes/python-sqlalchemy.rst#set-a-database-url
+
+query api cheat sheet
+https://video.udacity-data.com/topher/2019/August/5d5a52af_query-cheat-sheet/query-cheat-sheet.pdf
+
+flask migrate:
+initi:
+flask db init:first time only
+flask db migrate: when commimting a new change to model
+flask db upgrade:when upgarding to the next revision
+flask db downgrade: when downgrading to the prrevious model update
+
+flask responses:
+1xx - Informational
+2xx - Success
+3xx - Redirection
+4xx - Client errors
+5xx - Server errors
