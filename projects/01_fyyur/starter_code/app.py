@@ -13,6 +13,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+import datetime
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -101,46 +102,82 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
+  curr_date=datetime.datetime.now()
+  dataya=[]
+  venues=Venue.query.all()
+  locations=[]
+  pastshows=[]
+  futshows=[]
+  for venue in venues:
+    locations.append({"city":venue.city,"state":venue.state})
+  for location in locations:
+    location_v=[]
+    location_data={"city":location["city"],"state":location["state"]}
+    location_venues=Venue.query.filter(Venue.city==location["city"],Venue.state==location["state"])
+    for venue in location_venues:
+      shows=venue.shows
+      for show in shows:
+        if show.start_time<=curr_date:  
+          pastshows.append(show)
+        else:
+          futshows.append(show)
+      venue_data={
+        "id":venue.id,
+        "name":venue.name,
+        "num_upcoming_shows":len(futshows)
+      }
+      location_v.append(venue_data)
+    location_data["venues"]=location_v
+    dataya.append(location_data)  
+  print(dataya)
+
+  # data=[{
+  #   "city": "San Francisco",
+  #   "state": "CA",
+  #   "venues": [{
+  #     "id": 1,
+  #     "name": "The Musical Hop",
+  #     "num_upcoming_shows": 0,
+  #   }, {
+  #     "id": 3,
+  #     "name": "Park Square Live Music & Coffee",
+  #     "num_upcoming_shows": 1,
+  #   }]
+  # }, {
+  #   "city": "New York",
+  #   "state": "NY",
+  #   "venues": [{
+  #     "id": 2,
+  #     "name": "The Dueling Pianos Bar",
+  #     "num_upcoming_shows": 0,
+  #   }]
+  # }]
   venues =Venue.query.all()
   data1=[]
   for venue in venues:
     data1.append({"id":venue.id,"name":venue.name})
-    print(data1)
-  return render_template('pages/venues.html', areas=data);
+    #print(data1)
+  return render_template('pages/venues.html', areas=dataya);
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+  # response={
+  #   "count": 1,
+  #   "data": [{
+  #     "id": 2,
+  #     "name": "The Dueling Pianos Bar",
+  #     "num_upcoming_shows": 0,
+  #   }]
+  # }
+
+  search_term=request.form['search_term']
+  results=Venue.query.filter(Venue.name.ilike("%"+search_term+"%")).all() 
   response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
+    "count": len(results),
+    "data": results
   }
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
@@ -148,6 +185,42 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
+  curr_date=datetime.datetime.now()
+  dataya=[]
+  venue=Venue.query.get(venue_id)
+  pastshows=[]
+  futshows=[]
+  shows=venue.shows
+  for show in shows:
+    show_data={
+      "artist_id":show.artist_id,
+      "artist_image_link":Artist.query.get(show.artist_id).image_link,
+      "start_time":str(show.start_time)
+      }
+    if show.start_time<=curr_date:  
+      pastshows.append(show_data)
+    else:
+      futshows.append(show_data)
+    datax={
+      "id":venue.id,
+      "name":venue.name,
+      "genres":["Jazz", "Reggae", "Swing", "Classical", "Folk"],
+      # "genres":venue.genres.split(" "),
+      "address":venue.address,
+      "city":venue.city,
+      "state":venue.state,
+      "phone":venue.phone,
+      "website":"none",
+      "facebook_link":venue.facebook_link,
+      "seeking_talent":False,
+      "seeking_description":"none",
+      "image_link":venue.image_link,
+      "past_shows":pastshows,
+      "upcoming_shows":futshows,
+      "past_shows_count":len(pastshows),
+      "upcoming_shows_count":len(futshows)
+      }
+  print(datax)
   data1={
     "id": 1,
     "name": "The Musical Hop",
@@ -225,8 +298,8 @@ def show_venue(venue_id):
     "past_shows_count": 1,
     "upcoming_shows_count": 1,
   }
-  data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
-  return render_template('pages/show_venue.html', venue=data)
+  #data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
+  return render_template('pages/show_venue.html', venue=datax)
 
 #  Create Venue
 #  ----------------------------------------------------------------
@@ -475,7 +548,17 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
+  data=[]
+  showz=Shows.query.all()
+  for show in showz:
+    data1={"venue_id":show.venues.id,
+    "venue_name":show.venues.name,
+    "artist_name":show.artists.name,
+    "artist_image_link":show.artists.image_link,
+    "start_time":str(show.start_time)}
+    data.append(data1)
+  print(data)
+  dataz=[{
     "venue_id": 1,
     "venue_name": "The Musical Hop",
     "artist_id": 4,
@@ -534,11 +617,16 @@ def create_show_submission():
   # venue.artists.append(artist)
   show=Shows(artist_id=artistid,venue_id=venueid,start_time=date)
   db.session.add(show)
-  db.session.commit()
-  # on successful db insert, flash success
-  flash('Show was successfully listed!')
+  try:
+    db.session.commit()
+  except:
+    flash('An error occurred. Show could not be listed.')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Show could not be listed.')
+  # on successful db insert, flash success
+  else:
+    flash('Show was successfully listed!')
+ 
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
   return render_template('pages/home.html')
 
