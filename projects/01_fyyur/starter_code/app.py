@@ -39,8 +39,12 @@ class Venue(db.Model):
     state = db.Column(db.String(120),nullable=False)
     address = db.Column(db.String(120),nullable=False)
     phone = db.Column(db.String(120),nullable=False)
+    genres = db.Column(db.String(120), nullable=False)
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    seeking_talent=db.Column(db.Boolean)
+    seeking_description=db.Column(db.String(500))
+    website=db.Column(db.String(120))
     #artists = db.relationship('Artist',cascade="all, delete",secondary="shows",
     #backref=db.backref('venues', lazy=True))
 
@@ -58,7 +62,10 @@ class Artist(db.Model):
     genres = db.Column(db.String(120), nullable=False)
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-
+    seeking_venue=db.Column(db.Boolean)
+    seeking_description=db.Column(db.String(500))
+    website=db.Column(db.String(120))
+   # website_link=db.Column(db.String(120))
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 class Shows(db.Model):
 
@@ -204,16 +211,15 @@ def show_venue(venue_id):
     datax={
       "id":venue.id,
       "name":venue.name,
-      "genres":["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-      # "genres":venue.genres.split(" "),
+      "genres":venue.genres.split(" "),
       "address":venue.address,
       "city":venue.city,
       "state":venue.state,
       "phone":venue.phone,
-      "website":"none",
+      "website":venue.website,
       "facebook_link":venue.facebook_link,
-      "seeking_talent":False,
-      "seeking_description":"none",
+      "seeking_talent":venue.seeking_talent,
+      "seeking_description":venue.seeking_description,
       "image_link":venue.image_link,
       "past_shows":pastshows,
       "upcoming_shows":futshows,
@@ -383,6 +389,41 @@ def search_artists():
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
+  curr_date=datetime.datetime.now()
+  artist=Artist.query.get(artist_id)
+  pastshows=[]
+  futshows=[]
+  shows=artist.shows
+  for show in shows:
+    venue_show=Venue.query.get(show.venue_id)
+    show_data={
+      "venue_id":show.venue_id,
+      "venue_name":venue_show.name,
+      "venue_image_link":venue_show.image_link,
+      "start_time":str(show.start_time)
+      }
+    if show.start_time<=curr_date:  
+      pastshows.append(show_data)
+    else:
+      futshows.append(show_data)
+  
+  dataz={
+    "id":artist.id,
+    "name":artist.name,
+    "genres":artist.genres.split(" "),
+    "city":artist.city,
+    "state":artist.state,
+    "phone":artist.phone,
+    "website":artist.website,
+    "facebook_link":artist.facebook_link,
+    "seeking_value":artist.seeking_venue,
+    "seeking_description":artist.seeking_description,
+    "image_link":artist.image_link,
+    "past_shows":pastshows,
+    "upcoming_shows":futshows,
+    "past_shows_count": len(pastshows),
+    "upcoming_shows_count": len(futshows),
+  }
   data1={
     "id": 4,
     "name": "Guns N Petals",
@@ -454,8 +495,8 @@ def show_artist(artist_id):
     "past_shows_count": 0,
     "upcoming_shows_count": 3,
   }
-  data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
-  return render_template('pages/show_artist.html', artist=data)
+  #data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
+  return render_template('pages/show_artist.html', artist=dataz)
 
 #  Update
 #  ----------------------------------------------------------------
