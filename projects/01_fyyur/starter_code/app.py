@@ -416,7 +416,7 @@ def show_artist(artist_id):
     "phone":artist.phone,
     "website":artist.website,
     "facebook_link":artist.facebook_link,
-    "seeking_value":artist.seeking_venue,
+    "seeking_venue":artist.seeking_venue,
     "seeking_description":artist.seeking_description,
     "image_link":artist.image_link,
     "past_shows":pastshows,
@@ -502,7 +502,8 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-  form = ArtistForm()
+  form = EditArtistForm()
+  artistz=Artist.query.get(artist_id)
   artist={
     "id": 4,
     "name": "Guns N Petals",
@@ -517,13 +518,37 @@ def edit_artist(artist_id):
     "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
   }
   # TODO: populate form with fields from artist with ID <artist_id>
-  return render_template('forms/edit_artist.html', form=form, artist=artist)
+  return render_template('forms/edit_artist.html', form=form, artist=artistz)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
-
+  #still need to add checks when data is null, this goes for post data as well
+  decis={"y":True,"n":False}
+  artist_edited=Artist.query.get(artist_id)
+  print(request.form)
+  print(request.form['seeking_venue'])
+  if("".join(request.form['city'].split())):
+      artist_edited.city=request.form['city']
+  if("".join(request.form['state'].split())):   
+      artist_edited.state=request.form['state']
+  if("".join(request.form['phone'].split())):
+      artist_edited.phone=request.form['phone']
+  if(len(request.form['genres'])>0):
+       artist_edited.genres= ' '.join(map(str, request.form.getlist('genres')))
+  if("".join(request.form['facebook_link'].split())):
+      artist_edited.facebook_link=request.form['facebook_link']
+  if("".join(request.form['website'].split())):
+      artist_edited.website=request.form['website']
+  if("".join(request.form['seeking_venue'].split())):
+       artist_edited.seeking_venue=decis[request.form['seeking_venue']]
+  if("".join(request.form['seeking_description'].split())):
+      artist_edited.seeking_description=request.form['seeking_description']
+  # on successful db insert, flash success
+  db.session.commit()
+  # TODO: on unsuccessful db insert, flash an error instead.
+  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
   return redirect(url_for('show_artist', artist_id=artist_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
@@ -557,7 +582,7 @@ def edit_venue_submission(venue_id):
 
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
-  form = ArtistForm()
+  form = EditArtistForm()
   return render_template('forms/new_artist.html', form=form)
 
 @app.route('/artists/create', methods=['POST'])
