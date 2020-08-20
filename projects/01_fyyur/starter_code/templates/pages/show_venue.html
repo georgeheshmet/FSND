@@ -9,6 +9,9 @@
 		<p class="subtitle">
 			ID: {{ venue.id }}
 		</p>
+		<form class="form" method="DELETE" action="/venues/{{venue.id}}">
+			<input type="submit" value="Delete Venue" class="btn btn-default btn-lg pull-right">
+		</form>
 		<div class="genres">
 			{% for genre in venue.genres %}
 			<span class="genre">{{ genre }}</span>
