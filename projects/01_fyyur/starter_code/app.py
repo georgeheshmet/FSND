@@ -46,8 +46,6 @@ class Venue(db.Model):
     seeking_description=db.Column(db.String(500))
     website=db.Column(db.String(120))
     shows= db.relationship("Shows",backref="venues",cascade="all, delete")
-    #artists = db.relationship('Artist',cascade="all, delete",secondary="shows",
-    #backref=db.backref('venues', lazy=True))
 
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
@@ -67,7 +65,6 @@ class Artist(db.Model):
     seeking_description=db.Column(db.String(500))
     website=db.Column(db.String(120))
     shows= db.relationship("Shows", backref="artists",cascade="all, delete")
-   # website_link=db.Column(db.String(120))
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 class Shows(db.Model):
 
@@ -117,6 +114,7 @@ def venues():
   locations=[]
   pastshows=[]
   futshows=[]
+  #grouping venues byt city/state lcoation
   for venue in venues:
     locations.append({"city":venue.city,"state":venue.state})
   for location in locations:
@@ -130,6 +128,7 @@ def venues():
           pastshows.append(show)
         else:
           futshows.append(show)
+      #for each venue get needed data according to data schema required
       venue_data={
         "id":venue.id,
         "name":venue.name,
@@ -138,7 +137,7 @@ def venues():
       location_v.append(venue_data)
     location_data["venues"]=location_v
     dataya.append(location_data)  
-  print(dataya)
+  #print(dataya)
 
   # data=[{
   #   "city": "San Francisco",
@@ -181,7 +180,7 @@ def search_venues():
   #     "num_upcoming_shows": 0,
   #   }]
   # }
-
+  #searching for string provided in a case insesitive manner
   search_term=request.form['search_term']
   results=Venue.query.filter(Venue.name.ilike("%"+search_term+"%")).all() 
   response={
@@ -199,6 +198,7 @@ def show_venue(venue_id):
   pastshows=[]
   futshows=[]
   shows=venue.shows
+  #loop over venue shows and get needed info for each show
   for show in shows:
     show_data={
       "artist_id":show.artist_id,
@@ -209,6 +209,7 @@ def show_venue(venue_id):
       pastshows.append(show_data)
     else:
       futshows.append(show_data)
+  #extract needed data from venue 
   datax={
       "id":venue.id,
       "name":venue.name,
@@ -317,6 +318,7 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
+#check if seeking info is provided if not set it to False
     if("seeking_talent" in request.form.keys()):
       seeking=True
     else:
@@ -380,6 +382,7 @@ def artists():
   #   "id": 6,
   #   "name": "The Wild Sax Band",
   # }]
+  #loop over artists and get needed info
   artists =Artist.query.all()
   data=[]
   for artist in artists:
@@ -391,6 +394,7 @@ def search_artists():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
+  #case insensitive search for artists
   search_term=request.form['search_term']
   results=Artist.query.filter(Artist.name.ilike("%"+search_term+"%")).all() 
   response={
@@ -408,6 +412,7 @@ def show_artist(artist_id):
   pastshows=[]
   futshows=[]
   shows=artist.shows
+  #loop over shows, compare start time with current time and append 2 arrays accordingly
   for show in shows:
     venue_show=Venue.query.get(show.venue_id)
     show_data={
@@ -420,7 +425,7 @@ def show_artist(artist_id):
       pastshows.append(show_data)
     else:
       futshows.append(show_data)
-  
+  #this is the data passed in return statment
   dataz={
     "id":artist.id,
     "name":artist.name,
@@ -517,6 +522,7 @@ def show_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = EditArtistForm()
+  #get artist by id
   artistz=Artist.query.get(artist_id)
   artist={
     "id": 4,
