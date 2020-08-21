@@ -1,6 +1,7 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Venue Search{% endblock %}
 {% block content %}
+
 <div class="row">
 	<div class="col-sm-6">
 		<h1 class="monospace">
@@ -9,9 +10,13 @@
 		<p class="subtitle">
 			ID: {{ venue.id }}
 		</p>
-		<form class="form" method="DELETE" action="/venues/{{venue.id}}">
-			<input type="submit" value="Delete Venue" class="btn btn-default btn-lg pull-right">
-		</form>
+		<div class="button-wrapper">
+			<button class="delete_venue btn btn-default btn-lg pull-right" data-id={{venue.id}}>Delete venue</button>
+			<button class="edit_venue btn btn-default btn-lg pull-left" data-id={{venue.id}}>Edit venue</button>
+		</div>
+		<br>
+		<br>
+		<br>
 		<div class="genres">
 			{% for genre in venue.genres %}
 			<span class="genre">{{ genre }}</span>
@@ -77,6 +82,53 @@
 		{% endfor %}
 	</div>
 </section>
+<script>
+	delete_buttons=document.querySelectorAll(".delete_venue")
+	for (btn of delete_buttons){
+		btn.addEventListener("click",func_del)
+	}
+	edit_buttons=document.querySelectorAll(".edit_venue")
+	for (btn of edit_buttons){
+		btn.addEventListener("click",func_edit_ven)
+	}
+	async function func_edit_ven(e){
+		id= e.target.dataset.id
+		url="/venues/"+id+"/edit"
+		response= await fetch(url, 
+		{
+            method: 'GET',
+             }).then(function(response){
+             location.href =response.url
+             console.log(response)
+             }
+             ).catch(response=>{
+                 console.log("error")
+                 console.log(response)})                    
+            		
+	}
 
+
+
+	async function func_del(e){
+		id= e.target.dataset.id
+		url="/venues/"+id
+		response= await fetch(url, 
+		{
+            method: 'DELETE',
+			body: "",
+            headers: {
+            'Content-Type': 'application/json'
+               }
+             }).then(function(response){
+             location.href =response.url
+             console.log(response)
+             }
+             ).catch(response=>{
+                 console.log("error")
+                 console.log(response)})                    
+            		
+	}
+
+</script>
 {% endblock %}
 

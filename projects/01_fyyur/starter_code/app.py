@@ -99,7 +99,7 @@ app.jinja_env.filters['datetime'] = format_datetime
 # Controllers.
 #----------------------------------------------------------------------------#
 
-@app.route('/')
+@app.route('/', methods=['GET','POST','DELETE'])
 def index():
   return render_template('pages/home.html')
 
@@ -317,10 +317,17 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
+    if("seeking_talent" in request.form.keys()):
+      seeking=True
+    else:
+      seeking=False
+
   # TODO: insert form data as a new Venue record in the db, instead
     new_venue=Venue(name=request.form['name'],city=request.form['city'],
     state=request.form['state'],address=request.form['address'],
-    phone=request.form['phone'],facebook_link=request.form['facebook_link'])
+    phone=request.form['phone'],facebook_link=request.form['facebook_link'],
+    genres= ' '.join(map(str, request.form.getlist('genres'))),seeking_talent=seeking,
+    seeking_description=request.form["seeking_description"],website=request.form["website"],image_link=request.form['image_link'])
     #print(request.form.getlist('genres'))
     print(new_venue)
     try:
@@ -328,7 +335,6 @@ def create_venue_submission():
       db.session.commit()
     
   # TODO: modify data to be the data object returned from db insertion
-
 
 
   # TODO: on unsuccessful db insert, flash an error instead.
@@ -628,16 +634,23 @@ def edit_venue_submission(venue_id):
 
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
-  form = EditArtistForm()
+  form = ArtistForm()
   return render_template('forms/new_artist.html', form=form)
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
+  if("seeking_venue" in request.form.keys()):
+    seeking=True
+  else:
+    seeking=False
+
   # called upon submitting the new artist listing form
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
   new_artist=Artist(name=request.form['name'], city=request.form['city'],
-  state=request.form['state'], phone=request.form['phone'],genres= ' '.join(map(str, request.form.getlist('genres'))),facebook_link=request.form['facebook_link'])
+  state=request.form['state'], phone=request.form['phone'],genres= ' '.join(map(str, request.form.getlist('genres'))),
+  facebook_link=request.form['facebook_link'],seeking_venue=seeking,
+  seeking_description=request.form["seeking_description"],website=request.form["website"],image_link=request.form['image_link'])
   # on successful db insert, flash success
   print(new_artist)
   try:
@@ -650,8 +663,6 @@ def create_artist_submission():
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
   return render_template('pages/home.html')
-
-
 #  Shows
 #  ----------------------------------------------------------------
 
