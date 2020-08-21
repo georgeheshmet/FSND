@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
-from wtforms.validators import DataRequired, AnyOf, URL
+from wtforms.validators import DataRequired, AnyOf, URL,length, InputRequired
 
 class ShowForm(Form):
     artist_id = StringField(
@@ -24,7 +24,7 @@ class VenueForm(Form):
         'city', validators=[DataRequired()]
     )
     state = SelectField(
-        'state', validators=[DataRequired()],
+        'state', validators=[DataRequired(),length(max=1,message="too many geners")],
         choices=[
             ('AL', 'AL'),
             ('AK', 'AK'),
@@ -90,7 +90,7 @@ class VenueForm(Form):
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
-        'genres', validators=[DataRequired()],
+        'genres', validators=[DataRequired(),length(max=4,message="too many geners")],
         choices=[
             ('Alternative', 'Alternative'),
             ('Blues', 'Blues'),
@@ -114,7 +114,7 @@ class VenueForm(Form):
         ]
     )
     facebook_link = StringField(
-        'facebook_link', validators=[URL()]
+        'facebook_link', validators=[URL(message="not valid")]
     )
 
     website = StringField(
@@ -122,7 +122,7 @@ class VenueForm(Form):
     )    
 
     seeking_talent = BooleanField(
-        'seeking_talent', validators=[URL()]
+        'seeking_talent', validators=[]
     )    
 
     seeking_description = StringField(
@@ -137,7 +137,7 @@ class ArtistForm(Form):
         'city', validators=[DataRequired()]
     )
     state = SelectField(
-        'state', validators=[DataRequired()],
+        'state', validators=[DataRequired(),length(max=1,message="too many geners")],
         choices=[
             ('AL', 'AL'),
             ('AK', 'AK'),
@@ -194,7 +194,7 @@ class ArtistForm(Form):
     )
     phone = StringField(
         # TODO implement validation logic for state
-        'phone', validators=[DataRequired()]
+        'phone', validators=[DataRequired(),]
     )
     image_link = StringField(
         'image_link'
@@ -204,7 +204,7 @@ class ArtistForm(Form):
     )    
     genres = SelectMultipleField(
         # TODO implement enum restriction
-        'genres', validators=[DataRequired()],
+        'genres', validators=[DataRequired(),length(max=4,message="too many geners")],
         choices=[
             ('Alternative', 'Alternative'),
             ('Blues', 'Blues'),
@@ -247,7 +247,7 @@ class EditArtistForm(Form):
         'city'
     )
     state = SelectField(
-        'state',
+        'state',validators=[length(max=1,message="too many geners")],
         choices=[
             ('AL', 'AL'),
             ('AK', 'AK'),
@@ -314,7 +314,7 @@ class EditArtistForm(Form):
     )    
     genres = SelectMultipleField(
         # TODO implement enum restriction
-        'genres',
+        'genres',validators=[length(max=4,message="too many geners")],
         choices=[
             ('Alternative', 'Alternative'),
             ('Blues', 'Blues'),
@@ -355,7 +355,7 @@ class EditVenueForm(Form):
         'city'
     )
     state = SelectField(
-        'state',
+        'state',validators=[length(max=1,message="too many geners")],
         choices=[
             ('AL', 'AL'),
             ('AK', 'AK'),
@@ -421,7 +421,7 @@ class EditVenueForm(Form):
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
-        'genres',
+        'genres',validators=[length(max=4,message="too many geners")],
         choices=[
             ('Alternative', 'Alternative'),
             ('Blues', 'Blues'),

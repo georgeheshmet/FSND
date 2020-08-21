@@ -357,7 +357,11 @@ def delete_venue(venue_id):
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
   db.session.delete(venue)
-  db.session.commit()
+  try:
+    db.session.commit()
+  except:
+    db.session.rollback()
+    flash('Venue ' + Venue.query.get(venue_id)+ ' Couldnt be deleted')
   print(venue_id)
   return redirect(url_for("index"))
 
@@ -674,8 +678,10 @@ def shows():
   data=[]
   showz=Shows.query.all()
   for show in showz:
-    data1={"venue_id":show.venues.id,
+    data1={
+    "venue_id":show.venues.id,
     "venue_name":show.venues.name,
+    "artist_id":show.artists.id,
     "artist_name":show.artists.name,
     "artist_image_link":show.artists.image_link,
     "start_time":str(show.start_time)}
