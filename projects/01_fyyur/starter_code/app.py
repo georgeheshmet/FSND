@@ -170,6 +170,7 @@ def show_venue(venue_id):
   for show in shows:
     show_data={
       "artist_id":show.artist_id,
+      "artist_name":Artist.query.get(show.artist_id).name,
       "artist_image_link":Artist.query.get(show.artist_id).image_link,
       "start_time":str(show.start_time)
       }
