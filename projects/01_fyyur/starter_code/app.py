@@ -69,8 +69,9 @@ class Artist(db.Model):
 class Shows(db.Model):
 
     __tablename__='shows'
-    artist_id=db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True)
-    venue_id=db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    artist_id=db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'),nullable=False)
+    venue_id=db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id'),nullable=False)
     start_time= db.Column('start_time',db.DateTime, nullable=False)
     
     
@@ -115,12 +116,11 @@ def venues():
   pastshows=[]
   futshows=[]
   #grouping venues byt city/state lcoation
-  for venue in venues:
-    locations.append({"city":venue.city,"state":venue.state})
+  locations=db.session.query(Venue.state,Venue.city).distinct()
   for location in locations:
     location_v=[]
-    location_data={"city":location["city"],"state":location["state"]}
-    location_venues=Venue.query.filter(Venue.city==location["city"],Venue.state==location["state"])
+    location_data={"city":location[1],"state":location[0]}
+    location_venues=Venue.query.filter(Venue.city==location[1],Venue.state==location[0])
     for venue in location_venues:
       shows=venue.shows
       for show in shows:
@@ -165,16 +165,16 @@ def show_venue(venue_id):
   venue=Venue.query.get(venue_id)
   pastshows=[]
   futshows=[]
-  shows=venue.shows
+  shows=db.session.query(Artist.id,Artist.name,Artist.image_link,Shows.start_time).join(Venue.shows).join(Shows.artists).filter(Venue.id==venue_id).distinct().all()
   #loop over venue shows and get needed info for each show
   for show in shows:
     show_data={
-      "artist_id":show.artist_id,
-      "artist_name":Artist.query.get(show.artist_id).name,
-      "artist_image_link":Artist.query.get(show.artist_id).image_link,
-      "start_time":str(show.start_time)
+      "artist_id":show[0],
+      "artist_name":show[1],
+      "artist_image_link":show[2],
+      "start_time":str(show[3])
       }
-    if show.start_time<=curr_date:  
+    if show[3]<=curr_date:  
       pastshows.append(show_data)
     else:
       futshows.append(show_data)
@@ -292,15 +292,15 @@ def show_artist(artist_id):
   artist=Artist.query.get(artist_id)
   pastshows=[]
   futshows=[]
-  shows=artist.shows
+  shows=db.session.query(Venue.id,Venue.name,Venue.image_link,Shows.start_time).join(Venue.shows).join(Shows.artists).filter(Artist.id==artist_id).distinct().all()
   #loop over shows, compare start time with current time and append 2 arrays accordingly
   for show in shows:
-    venue_show=Venue.query.get(show.venue_id)
+    #venue_show=Venue.query.get(show.venue_id)
     show_data={
-      "venue_id":show.venue_id,
-      "venue_name":venue_show.name,
-      "venue_image_link":venue_show.image_link,
-      "start_time":str(show.start_time)
+      "venue_id":show[0],
+      "venue_name":show[1],
+      "venue_image_link":show[2],
+      "start_time":str(show[3])
       }
     if show.start_time<=curr_date:  
       pastshows.append(show_data)

@@ -19,6 +19,7 @@ changes affects automatically
 set FLASK_APP = file name
 flask run
 set FLASK_DEBUG=true
+set FLASK_ENV=DEVELOPMENT
 to change port number:
 set FLASK_RUN_PORT=8000
 flask run
@@ -49,3 +50,7 @@ flask responses:
 3xx - Redirection
 4xx - Client errors
 5xx - Server errors
+https://httpstatusdogs.com/
+
+  q=db.session.query(Venue.name,Venue.id,Artist.name,Artist.image_link,Shows.start_time).join(Venue.shows).join(Shows.artists).filter(Venue.id=="21").all()
+  locations=db.session.query(Venue.state,Venue.city).distinct()
