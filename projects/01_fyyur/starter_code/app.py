@@ -165,7 +165,12 @@ def show_venue(venue_id):
   venue=Venue.query.get(venue_id)
   pastshows=[]
   futshows=[]
-  shows=db.session.query(Artist.id,Artist.name,Artist.image_link,Shows.start_time).join(Venue.shows).join(Shows.artists).filter(Venue.id==venue_id).distinct().all()
+  #SELECT DISTINCT "Venue".id AS "Venue_id", "Venue".name AS "Venue_name", 
+  # "Venue".image_link AS "Venue_image_link", shows.start_time AS shows_start_time
+  #FROM "Venue" JOIN shows ON "Venue".id = shows.venue_id JOIN "Artist" ON "Artist".id = shows.artist_id
+  #WHERE "Artist".id = %(id_1)s
+  shows=db.session.query(Artist.id,Artist.name,Artist.image_link,\
+  Shows.start_time).join(Venue.shows).join(Shows.artists).filter(Venue.id==venue_id).distinct().all()
   #loop over venue shows and get needed info for each show
   for show in shows:
     show_data={
@@ -292,7 +297,11 @@ def show_artist(artist_id):
   artist=Artist.query.get(artist_id)
   pastshows=[]
   futshows=[]
-  shows=db.session.query(Venue.id,Venue.name,Venue.image_link,Shows.start_time).join(Venue.shows).join(Shows.artists).filter(Artist.id==artist_id).distinct().all()
+  #SELECT DISTINCT "Venue".id , "Venue".name , "Venue".image_link , shows.start_time 
+  #FROM "Venue" JOIN shows ON "Venue".id = shows.venue_id JOIN "Artist" ON "Artist".id = shows.artist_id
+  #WHERE "Artist".id =artist_id
+  shows=db.session.query(Venue.id,Venue.name,Venue.image_link,Shows.start_time).join(Venue.shows).\
+  join(Shows.artists).filter(Artist.id==artist_id).distinct().all()
   #loop over shows, compare start time with current time and append 2 arrays accordingly
   for show in shows:
     #venue_show=Venue.query.get(show.venue_id)
