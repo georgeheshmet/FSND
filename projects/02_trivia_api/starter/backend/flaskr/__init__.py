@@ -40,20 +40,15 @@ def create_app(test_config=None):
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
-  @app.route('/questions')
-  def retrieve_books():
-    selection = Question.query.order_by(Question.id).all()
-    current_questions = paginate_questions(request, selection)
-    current_categories=Category.query.order_by(Category.id).all()
-    cats = [category.format()['category'] for category in current_categories]
-    if len(current_questions) == 0:
+  @app.route('/categories')
+  def retrieve_categories():
+    selection=Category.query.all()
+    if len(selection) == 0:
       abort(404)
+    cats = [category.format()['category'] for category in selection]
     return jsonify({
-      'success': True,
-      'questions': current_questions,
-      'totalQuestions': len(Question.query.all()),
-      'categories':cats,
-      'currentCategory':'Sports'
+      "success":"True",
+      "categories":cats
     })
 
   '''
@@ -67,17 +62,8 @@ def create_app(test_config=None):
   you should see questions and categories generated,
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
-  '''
+  
 
-  '''
-  @TODO: 
-  Create an endpoint to DELETE question using a question ID. 
-
-  TEST: When you click the trash icon next to a question, the question will be removed.
-  This removal will persist in the database and when you refresh the page. 
-  '''
-
-  '''
   @TODO: 
   Create an endpoint to POST a new question, 
   which will require the question and answer text, 
@@ -86,9 +72,66 @@ def create_app(test_config=None):
   TEST: When you submit a question on the "Add" tab, 
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.  
-  '''
+  ''' 
+  
+  @app.route('/questions',methods=["GET","POST"])
+  def retrieve_questions():
+    if request.method=="GET":
+      print(request.method)
+      selection = Question.query.order_by(Question.id).all()
+      current_questions = paginate_questions(request, selection)
+      current_categories=Category.query.order_by(Category.id).all()
+      cats = [category.format()['category'] for category in current_categories]
+      if len(current_questions) == 0:
+        abort(404)
+      return jsonify({
+        'success': True,
+        'questions': current_questions,
+        'totalQuestions': len(Question.query.all()),
+        'categories':cats,
+        'currentCategory':'Sports'
+      })  
+    elif request.method=="POST":
+      print(request.method)
+      body=request.get_json()
+      question_body=body.get('question',None)
+      question_answer=body.get('answer',None)
+      question_category=body.get('category',None)
+      question_diff=body.get('difficulty',None)
+
+      if question_body is None or question_answer is None or question_category is None or question_diff is None:
+        abort(422)
+      try:
+        question=Question(question=question_body,answer=question_answer,difficulty=question_diff,category=question_category)
+        question.insert()
+      except:
+        db.session.rollback()
+        abort(500)
+      return jsonify({"success":True})
 
   '''
+  @TODO: 
+  Create an endpoint to DELETE question using a question ID. 
+
+  TEST: When you click the trash icon next to a question, the question will be removed.
+  This removal will persist in the database and when you refresh the page. 
+  '''
+  @app.route('/questions/<int:question_id>',methods=['DELETE'])
+  def delete_questions(question_id):
+    question=Question.query.get(question_id)
+    if question is None:
+      abort(404) 
+    try:
+      question.delete()   
+    except:
+      db.session.rollback()
+      abort(422)
+    return jsonify({
+      "success":True
+    })
+   
+  '''
+
   @TODO: 
   Create a POST endpoint to get questions based on a search term. 
   It should return any questions for whom the search term 
@@ -98,6 +141,22 @@ def create_app(test_config=None):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
+  @app.route('/questions/search',methods=['POST'])
+  def search_questions():
+    body=request.get_json()
+    print(body)
+    search_term=body.get('searchTerm',None)
+    if search_term is None:
+      abort(422)
+    questions=Question.query.filter(Question.question.ilike('%'+search_term+'%')).order_by(Question.id).all()
+    print(questions)
+    if questions is not None:
+      questions=[question.format() for question in questions]
+    return jsonify({
+    "questions": questions,
+    "totalQuestions":len(Question.query.all())
+    })
+
 
   '''
   @TODO: 
@@ -107,7 +166,16 @@ def create_app(test_config=None):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
-
+  @app.route('/categories/<int:category_id>/questions',methods=['GET'])
+  def get_cat_questions(category_id):
+    selection=Question.query.filter(Question.category==category_id).all()
+    selection=[quest.format() for  quest in selection]
+    current_category=Category.query.get(category_id).type
+    return jsonify({
+      "questions": selection,
+      "currentCategory": current_category,
+      "totalQuestions": len(Question.query.all())
+    })
 
   '''
   @TODO: 
@@ -120,7 +188,42 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  @app.route('/quizzes',methods=['POST'])
+  def get_quiz_questions():
+    body=request.get_json()
+    previous_questions=body.get("previous_questions",None)
+    cat=body.get("quiz_category",None)
+    print(cat)
+    questions=Question.query.filter(Question.category==cat['id']).all()
+    questions=[quest.format() for  quest in questions]
+    cat_all_IDs=[]
+    previous_IDS=[]
+    for quest in questions:
+      cat_all_IDs.append(quest['id'])
+    print(previous_questions)
+    for ques in previous_questions:
+      previous_IDS.append(ques)
 
+    print("all IDS: ")
+    print(cat_all_IDs)
+    print("previous IDS: ")
+    print(previous_IDS)
+
+    for ID in previous_IDS:
+      cat_all_IDs.remove(ID)
+    print("new all IDS: ")
+    print(cat_all_IDs)
+    questions_number=len(cat_all_IDs)
+    if questions_number:
+      currentQuestion=Question.query.get(cat_all_IDs[random.randint(0,questions_number-1)]).format()
+    else:
+      currentQuestion=None
+    print("returned questions")
+    print(currentQuestion)
+    return jsonify({
+      "question":currentQuestion,
+      "success":True
+    })
   '''
   @TODO: 
   Create error handlers for all expected errors 
