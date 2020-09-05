@@ -80,19 +80,63 @@ GET '/categories'
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
 - Request Arguments: None
 - Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
+{'0' : "Science",
+'1' : "Art",
+'2' : "Geography",
+'3' : "History",
+'4' : "Entertainment",
+'5' : "Sports"}
 
 ```
 
+GET '/questions'
+-fetches  a dictionary of questions from all categories, categories ,total number of questions
+-request argument: page number, ?page="num"
+-returns" an object with 3 keys : 1)questions 2)number of questions :totalQuestions 3)categories as array :"categories"
 
-## Testing
+POST '/questions'
+
+-INsert a question in the database, it takes the question, answer, category amd difficulty and inserts it in the database
+-request body: json fromat for 1)question 2)answer 3)category 4)difficulty
+-returns :None
+
+
+DELETE '/questions/'<int:question>'
+
+-Delete the question with the requested ID from database
+-request argument: only requires the ID to be passed in the url of delete method
+-returns: None
+
+
+POST '/questions/search'
+
+-Search in case insensitive manner for  questions with a  given a certain keyword, it returns all matching questions which has the string provided
+-request Body: searchTerm
+-return:all matching questions :"questions", total number of questions :"totalQuestions"
+
+GET '/categories/<int:category_id>/questions'
+
+
+-provide all questions with a certain category 
+-request argument: the id of category attached  needed in the url for example:/categories/1/questions
+-return : questions for the category provided :questions, current category :currentCategory, total questions: totalQuestions
+
+
+POST '/quizzes'
+
+-provide quizzes questions according to category provided andprevious questions IDS, it provde a new question that is nnot present in previous questions and has the
+same category as the one provided
+-request body:
+    previous_questions:list of IDs of past questions in this play instance
+    quiz_category: requested category of questions
+-return: 
+    question: return a questions of the requested category and that wasnt found in previous questions.    
+
+
+
 To run the tests, run
 ```
+replace line "migrate = Migrate(app,db)" in models.py with "db.create_all()"
 dropdb trivia_test
 createdb trivia_test
 psql trivia_test < trivia.psql

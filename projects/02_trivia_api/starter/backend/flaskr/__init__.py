@@ -47,7 +47,7 @@ def create_app(test_config=None):
       abort(404)
     cats = [category.format()['category'] for category in selection]
     return jsonify({
-      "success":"True",
+      "success":True,
       "categories":cats
     })
 
@@ -89,7 +89,6 @@ def create_app(test_config=None):
         'questions': current_questions,
         'totalQuestions': len(Question.query.all()),
         'categories':cats,
-        'currentCategory':'Sports'
       })  
     elif request.method=="POST":
       print(request.method)
@@ -153,6 +152,7 @@ def create_app(test_config=None):
     if questions is not None:
       questions=[question.format() for question in questions]
     return jsonify({
+    "success":True,
     "questions": questions,
     "totalQuestions":len(Question.query.all())
     })
@@ -168,13 +168,16 @@ def create_app(test_config=None):
   '''
   @app.route('/categories/<int:category_id>/questions',methods=['GET'])
   def get_cat_questions(category_id):
+    if category_id >5:
+      abort(404)
     selection=Question.query.filter(Question.category==category_id).all()
     selection=[quest.format() for  quest in selection]
     current_category=Category.query.get(category_id).type
     return jsonify({
       "questions": selection,
       "currentCategory": current_category,
-      "totalQuestions": len(Question.query.all())
+      "totalQuestions": len(Question.query.all()),
+      "success":True
     })
 
   '''
@@ -194,7 +197,12 @@ def create_app(test_config=None):
     previous_questions=body.get("previous_questions",None)
     cat=body.get("quiz_category",None)
     print(cat)
-    questions=Question.query.filter(Question.category==cat['id']).all()
+    if cat['type']=='click':
+        questions=Question.query.all()
+    else:
+        questions=Question.query.filter(Question.category==cat['id']).all()
+    if questions ==[]:
+      abort(404)
     questions=[quest.format() for  quest in questions]
     cat_all_IDs=[]
     previous_IDS=[]
@@ -229,7 +237,39 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
+  @app.errorhandler(400)
+  def bad_request(error):
+    return jsonify({
+      "success": False, 
+      "error": 400,
+      "message": "bad request"
+      }), 400  
+
+  @app.errorhandler(404)
+  def not_found(error):
+    return jsonify({
+      "success": False, 
+      "error": 404,
+      "message": "resource not found"
+      }), 404
+
+  @app.errorhandler(422)
+  def unprocessable(error):
+    return jsonify({
+      "success": False, 
+      "error": 422,
+      "message": "unprocessable"
+      }), 422
+
+
   
+  @app.errorhandler(500)
+  def server_error(error):
+    return jsonify({
+      "success": False, 
+      "error": 500,
+      "message": "server error"
+      }), 500
   return app
 
     
