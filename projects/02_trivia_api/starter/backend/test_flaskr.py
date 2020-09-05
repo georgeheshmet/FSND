@@ -103,15 +103,15 @@ class TriviaTestCase(unittest.TestCase):
     '''
     test 6 testing deleting question with success
     '''  
-    # def test_delete_question(self):
-    #     question=Question.query.all()
-    #     question_id=question[0].id
-    #     res = self.client().delete('/questions/'+str(question_id))
-    #     data = json.loads(res.data)
-    #     self.assertEqual(data['success'], True)
-    #     question=Question.query.filter(Question.id == question_id).one_or_none()
-    #     self.assertEqual(question, None)   
-    #     self.assertEqual(res.status_code, 200)  
+    def test_delete_question(self):
+        question=Question.query.all()
+        question_id=question[0].id
+        res = self.client().delete('/questions/'+str(question_id))
+        data = json.loads(res.data)
+        self.assertEqual(data['success'], True)
+        question=Question.query.filter(Question.id == question_id).one_or_none()
+        self.assertEqual(question, None)   
+        self.assertEqual(res.status_code, 200)  
     '''
     test 7 testing deleting question with error
     '''  

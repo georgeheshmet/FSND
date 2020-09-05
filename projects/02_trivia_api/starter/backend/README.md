@@ -144,6 +144,8 @@ To run the tests, run
 replace line "migrate = Migrate(app,db)" in models.py with "db.create_all()"
 dropdb trivia_test
 createdb trivia_test
+python test_flaskr.py (to setup tables)
 psql trivia_test < trivia.psql
+(this is the test running)
 python test_flaskr.py
 ```
