@@ -30,6 +30,5 @@ def downgrade():
     sa.Column('start_time', postgresql.TIMESTAMP(), autoincrement=False, nullable=False),
     sa.ForeignKeyConstraint(['artist_id'], ['Artist.id'], name='shows_artist_id_fkey'),
     sa.ForeignKeyConstraint(['venue_id'], ['Venue.id'], name='shows_venue_id_fkey'),
-    sa.PrimaryKeyConstraint('artist_id', 'venue_id', name='shows_pkey')
     )
     # ### end Alembic commands ###
